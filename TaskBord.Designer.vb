@@ -24,12 +24,13 @@ Partial Class TaskBord
     Private Sub InitializeComponent()
         components = New ComponentModel.Container()
         pnlMain = New Panel()
+        pnlWhiteBord = New Panel()
         pnlDateTime = New Panel()
+        btnDummy = New Button()
         lblDateTime = New Label()
         menuChangeSettings = New ContextMenuStrip(components)
         ChangeSettingsToolStripMenuItem = New ToolStripMenuItem()
         tim1sec = New Timer(components)
-        pnlWhiteBord = New Panel()
         pnlMain.SuspendLayout()
         pnlDateTime.SuspendLayout()
         menuChangeSettings.SuspendLayout()
@@ -46,8 +47,18 @@ Partial Class TaskBord
         pnlMain.Size = New Size(1258, 664)
         pnlMain.TabIndex = 0
         ' 
+        ' pnlWhiteBord
+        ' 
+        pnlWhiteBord.BackColor = Color.White
+        pnlWhiteBord.Dock = DockStyle.Fill
+        pnlWhiteBord.Location = New Point(0, 100)
+        pnlWhiteBord.Name = "pnlWhiteBord"
+        pnlWhiteBord.Size = New Size(1258, 564)
+        pnlWhiteBord.TabIndex = 1
+        ' 
         ' pnlDateTime
         ' 
+        pnlDateTime.Controls.Add(btnDummy)
         pnlDateTime.Controls.Add(lblDateTime)
         pnlDateTime.Dock = DockStyle.Top
         pnlDateTime.Location = New Point(0, 0)
@@ -55,6 +66,15 @@ Partial Class TaskBord
         pnlDateTime.Name = "pnlDateTime"
         pnlDateTime.Size = New Size(1258, 100)
         pnlDateTime.TabIndex = 0
+        ' 
+        ' btnDummy
+        ' 
+        btnDummy.Location = New Point(0, 0)
+        btnDummy.Margin = New Padding(0)
+        btnDummy.Name = "btnDummy"
+        btnDummy.Size = New Size(1, 1)
+        btnDummy.TabIndex = 0
+        btnDummy.UseVisualStyleBackColor = True
         ' 
         ' lblDateTime
         ' 
@@ -89,14 +109,6 @@ Partial Class TaskBord
         tim1sec.Enabled = True
         tim1sec.Interval = 1000
         ' 
-        ' pnlWhiteBord
-        ' 
-        pnlWhiteBord.Dock = DockStyle.Fill
-        pnlWhiteBord.Location = New Point(0, 100)
-        pnlWhiteBord.Name = "pnlWhiteBord"
-        pnlWhiteBord.Size = New Size(1258, 564)
-        pnlWhiteBord.TabIndex = 1
-        ' 
         ' TaskBord
         ' 
         AutoScaleDimensions = New SizeF(10F, 25F)
@@ -118,4 +130,5 @@ Partial Class TaskBord
     Friend WithEvents menuChangeSettings As ContextMenuStrip
     Friend WithEvents ChangeSettingsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents pnlWhiteBord As Panel
+    Friend WithEvents btnDummy As Button
 End Class
