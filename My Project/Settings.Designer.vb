@@ -65,6 +65,17 @@ Namespace My
                 Me("DateTimeFormat") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute()>  _
+        Public Property LabelData() As Global.System.Collections.Specialized.StringCollection
+            Get
+                Return CType(Me("LabelData"),Global.System.Collections.Specialized.StringCollection)
+            End Get
+            Set
+                Me("LabelData") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

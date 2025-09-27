@@ -29,6 +29,7 @@ Partial Class TaskBord
         menuChangeSettings = New ContextMenuStrip(components)
         ChangeSettingsToolStripMenuItem = New ToolStripMenuItem()
         tim1sec = New Timer(components)
+        pnlWhiteBord = New Panel()
         pnlMain.SuspendLayout()
         pnlDateTime.SuspendLayout()
         menuChangeSettings.SuspendLayout()
@@ -36,6 +37,7 @@ Partial Class TaskBord
         ' 
         ' pnlMain
         ' 
+        pnlMain.Controls.Add(pnlWhiteBord)
         pnlMain.Controls.Add(pnlDateTime)
         pnlMain.Dock = DockStyle.Fill
         pnlMain.Location = New Point(0, 0)
@@ -87,6 +89,14 @@ Partial Class TaskBord
         tim1sec.Enabled = True
         tim1sec.Interval = 1000
         ' 
+        ' pnlWhiteBord
+        ' 
+        pnlWhiteBord.Dock = DockStyle.Fill
+        pnlWhiteBord.Location = New Point(0, 100)
+        pnlWhiteBord.Name = "pnlWhiteBord"
+        pnlWhiteBord.Size = New Size(1258, 564)
+        pnlWhiteBord.TabIndex = 1
+        ' 
         ' TaskBord
         ' 
         AutoScaleDimensions = New SizeF(10F, 25F)
@@ -107,4 +117,5 @@ Partial Class TaskBord
     Friend WithEvents tim1sec As Timer
     Friend WithEvents menuChangeSettings As ContextMenuStrip
     Friend WithEvents ChangeSettingsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents pnlWhiteBord As Panel
 End Class
