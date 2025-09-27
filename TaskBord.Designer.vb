@@ -27,7 +27,7 @@ Partial Class TaskBord
         pnlDateTime = New Panel()
         lblDateTime = New Label()
         menuChangeSettings = New ContextMenuStrip(components)
-        設定を変更するToolStripMenuItem = New ToolStripMenuItem()
+        ChangeSettingsToolStripMenuItem = New ToolStripMenuItem()
         tim1sec = New Timer(components)
         pnlMain.SuspendLayout()
         pnlDateTime.SuspendLayout()
@@ -41,7 +41,7 @@ Partial Class TaskBord
         pnlMain.Location = New Point(0, 0)
         pnlMain.Margin = New Padding(0)
         pnlMain.Name = "pnlMain"
-        pnlMain.Size = New Size(800, 450)
+        pnlMain.Size = New Size(1258, 664)
         pnlMain.TabIndex = 0
         ' 
         ' pnlDateTime
@@ -51,33 +51,36 @@ Partial Class TaskBord
         pnlDateTime.Location = New Point(0, 0)
         pnlDateTime.Margin = New Padding(0)
         pnlDateTime.Name = "pnlDateTime"
-        pnlDateTime.Size = New Size(800, 100)
+        pnlDateTime.Size = New Size(1258, 100)
         pnlDateTime.TabIndex = 0
         ' 
         ' lblDateTime
         ' 
         lblDateTime.ContextMenuStrip = menuChangeSettings
         lblDateTime.Dock = DockStyle.Fill
+        lblDateTime.Font = New Font("Yu Gothic UI", 9F, FontStyle.Regular, GraphicsUnit.Point, CByte(128))
+        lblDateTime.ImageAlign = ContentAlignment.MiddleLeft
         lblDateTime.Location = New Point(0, 0)
         lblDateTime.Margin = New Padding(0)
         lblDateTime.Name = "lblDateTime"
-        lblDateTime.Size = New Size(800, 100)
+        lblDateTime.Padding = New Padding(10, 0, 0, 0)
+        lblDateTime.Size = New Size(1258, 100)
         lblDateTime.TabIndex = 0
         lblDateTime.Text = "Loading..."
-        lblDateTime.TextAlign = ContentAlignment.MiddleCenter
+        lblDateTime.TextAlign = ContentAlignment.MiddleLeft
         ' 
         ' menuChangeSettings
         ' 
         menuChangeSettings.ImageScalingSize = New Size(24, 24)
-        menuChangeSettings.Items.AddRange(New ToolStripItem() {設定を変更するToolStripMenuItem})
+        menuChangeSettings.Items.AddRange(New ToolStripItem() {ChangeSettingsToolStripMenuItem})
         menuChangeSettings.Name = "menuChangeSettings"
         menuChangeSettings.Size = New Size(200, 36)
         ' 
-        ' 設定を変更するToolStripMenuItem
+        ' ChangeSettingsToolStripMenuItem
         ' 
-        設定を変更するToolStripMenuItem.Name = "設定を変更するToolStripMenuItem"
-        設定を変更するToolStripMenuItem.Size = New Size(199, 32)
-        設定を変更するToolStripMenuItem.Text = "設定を変更する"
+        ChangeSettingsToolStripMenuItem.Name = "ChangeSettingsToolStripMenuItem"
+        ChangeSettingsToolStripMenuItem.Size = New Size(199, 32)
+        ChangeSettingsToolStripMenuItem.Text = "設定を変更する"
         ' 
         ' tim1sec
         ' 
@@ -88,7 +91,7 @@ Partial Class TaskBord
         ' 
         AutoScaleDimensions = New SizeF(10F, 25F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 450)
+        ClientSize = New Size(1258, 664)
         Controls.Add(pnlMain)
         Name = "TaskBord"
         Text = "TaskBord"
@@ -103,5 +106,5 @@ Partial Class TaskBord
     Friend WithEvents lblDateTime As Label
     Friend WithEvents tim1sec As Timer
     Friend WithEvents menuChangeSettings As ContextMenuStrip
-    Friend WithEvents 設定を変更するToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ChangeSettingsToolStripMenuItem As ToolStripMenuItem
 End Class

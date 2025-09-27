@@ -44,7 +44,6 @@ Partial Class ChangeSettings
         ' 
         grdChangeSettings.AllowUserToAddRows = False
         grdChangeSettings.AllowUserToDeleteRows = False
-        grdChangeSettings.AllowUserToResizeColumns = False
         grdChangeSettings.AllowUserToResizeRows = False
         grdChangeSettings.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         grdChangeSettings.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
