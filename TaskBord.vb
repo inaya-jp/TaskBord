@@ -28,8 +28,8 @@ Public Class TaskBord
         ' 1秒ごとに現在の日時を更新
         lblDateTime.Text = DateTime.Now.ToString(My.Settings.DateTimeFormat)
 
-        'ラベル情報を保存
-        If lblManager IsNot lblManager Then lblManager.SaveLabels()
+        'ラベル情報を自動保存
+        SaveLabelsIfPossible()
     End Sub
 
     Private Sub 設定を変更するToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChangeSettingsToolStripMenuItem.Click
@@ -62,14 +62,11 @@ Public Class TaskBord
 
     ' 指定した位置にラベルを追加するメソッド
     Private Sub AddNewLabelAtLocation(location As Point)
-        ' 入力ダイアログを表示
-        Dim inputText As String = InputBox(
-        "ラベルのテキストを入力してください",
-        "新しいラベル",
-        "")
+        ' カスタム入力ダイアログを表示
+        Dim dialogResult As LabelDialogResult = ShowLabelDialog("新しいラベル", "", Color.Black, 12.0F)
 
         ' キャンセルまたは空白の場合は作成しない
-        If String.IsNullOrWhiteSpace(inputText) Then
+        If dialogResult.IsCanceled OrElse String.IsNullOrWhiteSpace(dialogResult.Text) Then
             Return
         End If
 
@@ -77,25 +74,94 @@ Public Class TaskBord
         Dim newLabel As New System.Windows.Forms.Label()
 
         ' ラベルのプロパティを設定
-        newLabel.Text = inputText
+        newLabel.Text = dialogResult.Text
         newLabel.AutoSize = True
         newLabel.BackColor = Color.Transparent
         newLabel.Location = location ' ダブルクリックした位置
+        newLabel.ForeColor = dialogResult.ForeColor
 
         ' フォントを適用
         Dim commonInstance As New Common()
         commonInstance.Set_customFont(newLabel)
+        ' サイズを変更
+        newLabel.Font = New Font(newLabel.Font.FontFamily, dialogResult.FontSize, newLabel.Font.Style)
 
-        ' ダブルクリックイベントを追加
-        AddHandler newLabel.MouseDown, AddressOf Label_MouseDown
-        AddHandler newLabel.MouseMove, AddressOf Label_MouseMove
-        AddHandler newLabel.MouseUp, AddressOf Label_MouseUp
-        AddHandler newLabel.DoubleClick, AddressOf Label_DoubleClick
+        ' イベントハンドラを追加
+        AddLabelEventHandlers(newLabel)
 
         ' パネルに追加
         pnlWhiteBord.Controls.Add(newLabel)
 
         ' すぐに保存
+        If lblManager IsNot Nothing Then
+            lblManager.SaveLabels()
+        End If
+    End Sub
+
+    ' ラベルにイベントハンドラを追加するメソッド
+    Private Sub AddLabelEventHandlers(label As Label)
+        AddHandler label.MouseDown, AddressOf Label_MouseDown
+        AddHandler label.MouseMove, AddressOf Label_MouseMove
+        AddHandler label.MouseUp, AddressOf Label_MouseUp
+        AddHandler label.DoubleClick, AddressOf Label_DoubleClick
+
+        ' 右クリックメニューを追加
+        Dim contextMenu As New ContextMenuStrip()
+
+        ' プロパティ変更メニュー
+        Dim editPropsItem As New ToolStripMenuItem("プロパティを変更")
+        AddHandler editPropsItem.Click, Sub() EditLabelProperties(label)
+        contextMenu.Items.Add(editPropsItem)
+
+        ' 区切り線
+        contextMenu.Items.Add(New ToolStripSeparator())
+
+        ' 削除メニュー
+        Dim deleteItem As New ToolStripMenuItem("削除")
+        AddHandler deleteItem.Click, Sub() DeleteLabel(label)
+        contextMenu.Items.Add(deleteItem)
+
+        label.ContextMenuStrip = contextMenu
+    End Sub
+
+    ' ラベルのプロパティを編集
+    Private Sub EditLabelProperties(label As Label)
+        Dim dialogResult As LabelDialogResult = ShowLabelDialog(
+            "プロパティ変更",
+            label.Text,
+            label.ForeColor,
+            label.Font.Size)
+
+        If Not dialogResult.IsCanceled Then
+            If Not String.IsNullOrWhiteSpace(dialogResult.Text) Then
+                'テキストが空白でない場合、テキストを更新
+                label.Text = dialogResult.Text
+            Else
+                'テキストが空白の場合、ラベルを削除
+                DeleteLabel(label)
+            End If
+            label.ForeColor = dialogResult.ForeColor
+
+            ' フォントサイズを変更
+            label.Font = New Font(label.Font.FontFamily, dialogResult.FontSize, label.Font.Style)
+
+            SaveLabelsIfPossible()
+        End If
+
+        btnDummy.Focus()
+    End Sub
+
+    ' ラベルを削除
+    Private Sub DeleteLabel(label As Label)
+
+        pnlWhiteBord.Controls.Remove(label)
+        label.Dispose()
+        SaveLabelsIfPossible()
+
+    End Sub
+
+    ' ラベル保存のヘルパーメソッド
+    Private Sub SaveLabelsIfPossible()
         If lblManager IsNot Nothing Then
             lblManager.SaveLabels()
         End If
@@ -114,14 +180,15 @@ Public Class TaskBord
 
         Dim label As Label = DirectCast(sender, Label)
         label.BringToFront() ' ラベルを最前面に移動
-
-
     End Sub
 
     ' MouseUpイベントでドラッグ終了
     Private Sub Label_MouseUp(sender As Object, e As MouseEventArgs)
         If e.Button = MouseButtons.Left Then
             isDragging = False
+
+            ' ドラッグ終了時に保存
+            SaveLabelsIfPossible()
         End If
     End Sub
 
@@ -136,39 +203,13 @@ Public Class TaskBord
 
             ' ラベルの位置を更新
             label.Location = New Point(newX, newY)
-
         End If
     End Sub
+
     Private Sub Label_DoubleClick(sender As Object, e As EventArgs)
         Dim label As Label = DirectCast(sender, Label)
-
-        Dim result As InputBoxResult = ShowInputBox(
-        "変更する文字列を入力してください（空白で削除）",
-        "文字列入力",
-        label.Text)
-
-        If result.IsCanceled Then
-            ' キャンセルが押された場合
-            Return ' 何もしない
-        ElseIf result.Text = "" Then
-            ' 空白が入力された場合、ラベルを削除
-            pnlWhiteBord.Controls.Remove(label)
-            label.Dispose()
-        Else
-            ' 通常のテキストが入力された場合
-            label.Text = result.Text
-        End If
-
-        ' 変更を保存
-        If lblManager IsNot Nothing Then
-            lblManager.SaveLabels()
-        End If
-
-        'ダミーボタンにフォーカスを移動する
-        btnDummy.Focus()
+        EditLabelProperties(label)
     End Sub
-
-
 
     ''' <summary>
     ''' ラベルの情報を保持するクラス
@@ -204,9 +245,12 @@ Public Class TaskBord
     ''' </summary>
     Public Class LabelManager
         Private _container As Control
+        Private _parentForm As TaskBord
 
         Public Sub New(container As Control)
             _container = container
+            ' 親フォームの参照を取得
+            _parentForm = DirectCast(container.FindForm(), TaskBord)
         End Sub
 
         ''' <summary>
@@ -221,9 +265,9 @@ Public Class TaskBord
                     My.Settings.LabelData.Clear()
                 End If
 
-                ' コンテナ内のすべてのTransparentLabelを取得
+                ' コンテナ内のすべてのLabelを取得
                 For Each ctrl As Control In _container.Controls
-                    If TypeOf ctrl Is Label OrElse TypeOf ctrl Is Label Then
+                    If TypeOf ctrl Is Label Then
                         Dim label As Label = DirectCast(ctrl, Label)
                         Dim info As New LabelInfo(label)
 
@@ -247,7 +291,7 @@ Public Class TaskBord
         ''' </summary>
         Public Sub LoadLabels()
             Try
-                ' 既存のラベルをクリア（オプション）
+                ' 既存のラベルをクリア
                 ClearLabels()
 
                 If My.Settings.LabelData Is Nothing OrElse My.Settings.LabelData.Count = 0 Then
@@ -262,7 +306,6 @@ Public Class TaskBord
                     End If
                 Next
 
-
             Catch ex As Exception
                 MessageBox.Show($"復元中にエラーが発生しました: {ex.Message}",
                               "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -273,26 +316,23 @@ Public Class TaskBord
         ''' LabelInfoからラベルを作成
         ''' </summary>
         Private Sub CreateLabelFromInfo(info As LabelInfo)
-            ' TransparentLabelを使用
             Dim newLabel As New Label() With {
                 .Text = info.Text,
                 .Location = New Point(info.X, info.Y),
                 .AutoSize = info.AutoSize,
                 .Font = New Font(info.FontName, info.FontSize, info.FontStyle),
-                .ForeColor = Color.FromArgb(info.ForeColorArgb)
+                .ForeColor = Color.FromArgb(info.ForeColorArgb),
+                .BackColor = Color.Transparent
             }
 
-            ' カスタムフォントを適用（必要に応じて）
+            ' カスタムフォントを適用
             Dim commonInstance As New Common()
             commonInstance.Set_customFont(newLabel)
-            Dim taskbordInstance As New TaskBord
+            ' フォントサイズを保持
+            newLabel.Font = New Font(newLabel.Font.FontFamily, info.FontSize, newLabel.Font.Style)
 
-            ' ドラッグ機能を追加
-            AddHandler newLabel.MouseDown, AddressOf taskbordInstance.Label_MouseDown
-            AddHandler newLabel.MouseMove, AddressOf taskbordInstance.Label_MouseMove
-            AddHandler newLabel.MouseUp, AddressOf taskbordInstance.Label_MouseUp
-            AddHandler newLabel.DoubleClick, AddressOf taskbordInstance.Label_DoubleClick
-
+            ' イベントハンドラを追加
+            _parentForm.AddLabelEventHandlers(newLabel)
 
             ' コンテナに追加
             _container.Controls.Add(newLabel)
@@ -305,7 +345,7 @@ Public Class TaskBord
             Dim labelsToRemove As New List(Of Control)
 
             For Each ctrl As Control In _container.Controls
-                If TypeOf ctrl Is Label OrElse TypeOf ctrl Is Label Then
+                If TypeOf ctrl Is Label Then
                     labelsToRemove.Add(ctrl)
                 End If
             Next
@@ -317,16 +357,13 @@ Public Class TaskBord
         End Sub
     End Class
 
-
-
     Private Sub TaskBord_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
         Dim closingSave As Boolean = False
         Dim retryCount As Integer = 0
 
         While closingSave = False
-            If lblManager Is lblManager Then
+            If lblManager IsNot Nothing Then
                 lblManager.SaveLabels()
-
                 closingSave = True
             Else
                 ' 保存に失敗した場合、再試行
@@ -341,26 +378,33 @@ Public Class TaskBord
                 Exit While
             End If
         End While
-
     End Sub
 
-    ' カスタムInputBoxの実装
-    Public Class InputBoxResult
+    ' ラベルダイアログの結果クラス
+    Public Class LabelDialogResult
         Public Property Text As String
+        Public Property ForeColor As Color
+        Public Property FontSize As Single
         Public Property IsCanceled As Boolean
 
-        Public Sub New(text As String, isCanceled As Boolean)
+        Public Sub New(text As String, foreColor As Color, fontSize As Single, isCanceled As Boolean)
             Me.Text = text
+            Me.ForeColor = foreColor
+            Me.FontSize = fontSize
             Me.IsCanceled = isCanceled
         End Sub
     End Class
 
-    Public Function ShowInputBox(prompt As String, title As String, defaultText As String) As InputBoxResult
+    ' カスタムラベルダイアログ
+    Public Function ShowLabelDialog(title As String, defaultText As String, defaultColor As Color, defaultSize As Single) As LabelDialogResult
         Dim form As New Form()
         Dim textBox As New TextBox()
+        Dim colorButton As New Button()
+        Dim sizeNumeric As New NumericUpDown()
         Dim buttonOk As New Button()
         Dim buttonCancel As New Button()
-        Dim result As New InputBoxResult("", True) ' デフォルトはキャンセル
+        Dim selectedColor As Color = defaultColor
+        Dim result As New LabelDialogResult("", Color.Black, 12.0F, True) ' デフォルトはキャンセル
 
         With form
             .Text = title
@@ -368,50 +412,103 @@ Public Class TaskBord
             .StartPosition = FormStartPosition.CenterScreen
             .MinimizeBox = False
             .MaximizeBox = False
-            .Size = New Size(400, 150)
+            .Size = New Size(400, 220)
         End With
 
-        Dim label As New Label() With {
-            .Text = prompt,
-            .Location = New Point(12, 12),
-            .Size = New Size(360, 40),
-            .AutoSize = False
+        ' テキストラベル
+        Dim lblText As New Label() With {
+            .Text = "テキスト:",
+            .Location = New Point(12, 15),
+            .Size = New Size(60, 20)
         }
 
+        ' テキストボックス
         With textBox
             .Text = defaultText
-            .Location = New Point(12, 55)
-            .Size = New Size(360, 20)
+            .Location = New Point(80, 12)
+            .Size = New Size(280, 20)
             .TabIndex = 0
         End With
 
-        With buttonOk
-            .Text = "OK"
-            .Location = New Point(216, 85)
-            .Size = New Size(75, 23)
+        ' 色ラベル
+        Dim lblColor As New Label() With {
+            .Text = "文字色:",
+            .Location = New Point(12, 50),
+            .Size = New Size(60, 20)
+        }
+
+        ' 色選択ボタン
+        With colorButton
+            .Text = "色を選択"
+            .Location = New Point(80, 47)
+            .Size = New Size(100, 25)
+            .BackColor = defaultColor
             .TabIndex = 1
         End With
 
-        With buttonCancel
-            .Text = "キャンセル"
-            .Location = New Point(297, 85)
-            .Size = New Size(75, 23)
+        ' サイズラベル
+        Dim lblSize As New Label() With {
+            .Text = "サイズ:",
+            .Location = New Point(12, 85),
+            .Size = New Size(60, 20)
+        }
+
+        ' サイズ選択
+        With sizeNumeric
+            .Location = New Point(80, 82)
+            .Size = New Size(80, 20)
+            .Minimum = 6
+            .Maximum = 72
+            .DecimalPlaces = 1
+            .Value = CDec(defaultSize)
             .TabIndex = 2
         End With
 
+        ' OKボタン
+        With buttonOk
+            .Text = "OK"
+            .Location = New Point(210, 150)
+            .Size = New Size(75, 25)
+            .TabIndex = 3
+        End With
+
+        ' キャンセルボタン
+        With buttonCancel
+            .Text = "キャンセル"
+            .Location = New Point(291, 150)
+            .Size = New Size(75, 25)
+            .TabIndex = 4
+        End With
+
+        ' 色選択ボタンのクリックイベント
+        AddHandler colorButton.Click, Sub()
+                                          Using colorDialog As New ColorDialog()
+                                              colorDialog.Color = selectedColor
+                                              colorDialog.FullOpen = True
+                                              If colorDialog.ShowDialog() = DialogResult.OK Then
+                                                  selectedColor = colorDialog.Color
+                                                  colorButton.BackColor = selectedColor
+                                              End If
+                                          End Using
+                                      End Sub
+
         ' OKボタンのクリックイベント
         AddHandler buttonOk.Click, Sub()
-                                       result = New InputBoxResult(textBox.Text, False)
+                                       result = New LabelDialogResult(
+                                           textBox.Text,
+                                           selectedColor,
+                                           CSng(sizeNumeric.Value),
+                                           False)
                                        form.Close()
                                    End Sub
 
         ' キャンセルボタンのクリックイベント
         AddHandler buttonCancel.Click, Sub()
-                                           result = New InputBoxResult("", True)
+                                           result = New LabelDialogResult("", Color.Black, 12.0F, True)
                                            form.Close()
                                        End Sub
 
-        form.Controls.AddRange({label, textBox, buttonOk, buttonCancel})
+        form.Controls.AddRange({lblText, textBox, lblColor, colorButton, lblSize, sizeNumeric, buttonOk, buttonCancel})
         form.AcceptButton = buttonOk
         form.CancelButton = buttonCancel
 

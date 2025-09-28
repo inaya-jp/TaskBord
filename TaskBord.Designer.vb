@@ -23,6 +23,7 @@ Partial Class TaskBord
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         components = New ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(TaskBord))
         pnlMain = New Panel()
         pnlWhiteBord = New Panel()
         pnlDateTime = New Panel()
@@ -115,6 +116,7 @@ Partial Class TaskBord
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1258, 664)
         Controls.Add(pnlMain)
+        Icon = CType(resources.GetObject("$this.Icon"), Icon)
         Name = "TaskBord"
         Text = "TaskBord"
         pnlMain.ResumeLayout(False)
